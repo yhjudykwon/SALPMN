@@ -1,4 +1,4 @@
-% Uploaded by YoungHye Judy Kwon (Dec 4, 2024)
+% Uploaded by YoungHye Judy Kwon (Dec 4, 2024) 
 
 %% Load beta values in each zone and assess repetition enhancement effect
 function ant_pos_func(s, n)
