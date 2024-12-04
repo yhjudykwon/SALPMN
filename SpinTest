@@ -1,0 +1,92 @@
+% Uploaded by YoungHye Judy Kwon (Dec 4, 2024)
+
+%% Load beta values in each zone and assess repetition enhancement effect
+function ant_pos_func(s, n)
+    % Add required paths
+    addpath('../cifti-matlab-master');
+    WORKDIR = '/path/to/your/working/directory/';
+
+    % Define parameters
+    subID = [# # # # # #];  % Subject IDs
+    region = {'anterior', 'posterior', 'all'};  % Regions: anterior, posterior, all
+    network = {'pmnID', 'dnaID', 'dnbID', 'fpnaID', 'fpnbID', 'conaID', 'conbID'};  % Network list
+    
+    % Network IDs for each subject
+    pmnID = [# # # # # #];
+    dnaID = [# # # # # #];
+    dnbID = [# # # # # #];
+    fpnaID = [# # # # # #];
+    fpnbID = [# # # # # #];
+    conaID = [# # # # # #];
+    conbID = [# # # # # #];
+    
+    % Permutation settings
+    num_perm = 1000;  % Number of iterations
+    num_vert = #;  % Total number of vertices (e.g., 327684 for fsaverage7)
+    perm_indx = randi([1, num_vert], 1, num_perm);  % Permutation indices
+
+    disp(['Processing subject ' num2str(subID(s), '%0.2i') ' & network ' network{n}]);
+
+    % Load design matrix and beta values
+    design_mat = importdata('/path/to/your/design/mat/');
+    beta = load('/path/to/your/beta/');
+
+ % Iterate over regions (anterior, posterior, all)
+    for i = 1:length(region)
+        % Load vertex indices for the region
+        idx = load('/path/to/vertex/index');
+        
+        % Extract betas for each presentation
+        betas_1st = beta(idx, find(design_mat(:, 1) == 1));  % First presentation (1=correct rejection)
+        betas_2nd = beta(idx, find(design_mat(:, 2) == 1));  % Second presentation (1=hit)
+        betas_3rd = beta(idx, find(design_mat(:, 3) == 1));  % Third presentation (1=hit)
+
+        % Perform one-tailed t-tests for each pair
+        for t=1:size(betas_1st,1)
+            [~,p,~,stats]=ttest(betas_2nd(t,:), betas_1st(t,:),'tail','right');  % P2 > P1
+            tstat_21(t,:) = stats.tstat; clear stats
+            [~,p,~,stats]=ttest(betas_3rd(t,:), betas_1st(t,:),'tail','right');  % P3 > P1
+            tstat_31(t,:)= stats.tstat; clear stats
+            [~,p,~,stats]=ttest(betas_3rd(t,:), betas_2nd(t,:),'tail','right');  % P3 > P2
+            tstat_32(t,:)= stats.tstat; clear stats
+        end
+
+        % Replace betas in medial wall with mean value
+        mw = cifti_read('/path/to/medial/wall/');
+        mw_idx = find(mw.cdata == 1);  % Medial wall indices
+        notmw_idx = find(mw.cdata == 0);  % Non-medial wall indices
+        avg_mw = nanmean(nanmean(beta(notmw_idx, :)));
+        beta(mw_idx, :) = avg_mw;
+
+        % Spin
+        for perm=1:num_perm
+            perm
+           
+            % Make null betas
+            spined_beta = [beta(perm_indx(perm):end,:); beta(1:perm_indx(perm)-1,:)];
+            spined_betas_1st = spined_beta(idx,find(design_mat(:,1)==1));
+            spined_betas_2nd = spined_beta(idx,find(design_mat(:,2)==1));
+            spined_betas_3rd = spined_beta(idx,find(design_mat(:,3)==1));
+
+          % Perform one-tailed t-tests for each pair
+            for t=1:size(spined_betas_1st,1)
+                [~,p,~,stats]=ttest(spined_betas_2nd(t,:), spined_betas_1st(t,:),'tail','right'); % P2 > P1
+                spined_tstat_21_all(t,perm) = stats.tstat; clear stats
+                [~,p,~,stats]=ttest(spined_betas_3rd(t,:), spined_betas_1st(t,:),'tail','right'); % P3 > P1
+                spined_tstat_31_all(t,perm) = stats.tstat; clear stats
+                [~,p,~,stats]=ttest(spined_betas_3rd(t,:), spined_betas_2nd(t,:),'tail','right'); % P3 > P2
+                spined_tstat_32_all(t,perm) = stats.tstat; clear stats
+            end
+
+        end
+
+        % Calculate p-values
+        spined_tstat_21 = nanmean(spined_tstat_21_all);
+        spined_tstat_31 = nanmean(spined_tstat_31_all);
+        spined_tstat_32 = nanmean(spined_tstat_32_all);
+
+        pval21= length(find(mean(tstat_21) < spined_tstat_21)) / num_perm;
+        pval31= length(find(mean(tstat_31) < spined_tstat_31)) / num_perm;
+        pval32= length(find(mean(tstat_32) < spined_tstat_32)) / num_perm;
+
+end
