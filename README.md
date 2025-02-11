@@ -1,4 +1,4 @@
-Repository for "Situating the salience and parietal memory networks in the context of multiple parallel distributed networks using precision functional mapping", Kwon et al. 2025 Cell Reports.
+Repository for "Situating the salience and parietal memory networks in the context of multiple parallel distributed networks using precision functional mapping", Kwon et al. 2025 _Cell Reports_.
 
 SpinTest: This MATLAB script performs a spin test to assess repetition enhancement effects across different regions and networks.
 
