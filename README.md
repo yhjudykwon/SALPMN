@@ -1,4 +1,4 @@
-Kwon, Y. H., Salvo, J. J., Anderson, N. L., Edmonds, D., Holubecki, A. M., Lakshman, M., ... & Braga, R. M. (2025). Situating the salience and parietal memory networks in the context of multiple parallel distributed networks using precision functional mapping. Cell reports, 44(1).
+Repository for "Situating the salience and parietal memory networks in the context of multiple parallel distributed networks using precision functional mapping", Kwon et al. 2020 Cell Reports.
 
 SpinTest: This MATLAB script performs a spin test to assess repetition enhancement effects across different regions and networks.
 
